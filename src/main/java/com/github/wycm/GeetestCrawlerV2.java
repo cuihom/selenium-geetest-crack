@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -29,51 +30,60 @@ public class GeetestCrawlerV2 {
     //html 大小
     private static Point htmlFullScreenSize = null;
     static {
-        System.setProperty("webdriver.chrome.driver", "/Users/wangyang/Downloads/chromedriver");
+        System.setProperty("webdriver.chrome.driver", "D:\\Downloads\\chromedriver_win32\\chromedriver.exe");
         driver = new ChromeDriver();
     }
     public static void main(String[] args) {
-        try {
-            for(int i = 0; i < 10; i++){
-                driver.manage().window().setSize(new Dimension(1024, 768));
-                driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
-                driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
-                driver.get("https://www.geetest.com/demo/slide-bind.html");
-                Thread.sleep(2 * 1000);
-                driver.findElement(By.className("btn")).click();
-                Thread.sleep(3 * 1000);
-                Actions actions = new Actions(driver);
-                //图一
-                BufferedImage image = getImageEle(driver.findElement(By.cssSelector("canvas[class='geetest_canvas_bg geetest_absolute']")));
-                ImageIO.write(image, "png",  new File(BASE_PATH + "slider.png"));
-                //设置原图可见
-                driver.executeScript("document.getElementsByClassName(\"geetest_canvas_fullbg\")[0].setAttribute('style', 'display: block')\n");
-                //图二
-                image = getImageEle(driver.findElement(By.cssSelector("canvas[class='geetest_canvas_fullbg geetest_fade geetest_absolute']")));
-                ImageIO.write(image, "png",  new File(BASE_PATH + "original.png"));
-                //隐藏原图
-                driver.executeScript("document.getElementsByClassName(\"geetest_canvas_fullbg\")[0].setAttribute('style', 'display: none')\n");
-                WebElement element = null;
-                element = driver.findElement(By.className("geetest_slider_button"));
-                actions.clickAndHold(element).perform();
-                int moveDistance = calcMoveDistance();
-                int d = 0;
+        try{
+            driver.manage().window().setSize(new Dimension(1024, 768));
+            driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+            driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
+            driver.get("http://www.ziye114.com/member/login.aspx");
+            Thread.sleep(2 * 1000);
+            driver.findElement(By.name("email")).sendKeys("huishou");
+            driver.findElement(By.name("password")).sendKeys("629323");
+            driver.findElement(By.xpath("//span[@class='geetest_radar_tip_content']")).click();
+            Thread.sleep(3 * 1000);
+            Actions actions = new Actions(driver);
+            //图一
+            BufferedImage image = getImageEle(driver.findElement(By.cssSelector("canvas[class='geetest_canvas_bg geetest_absolute']")));
+            ImageIO.write(image, "png",  new File(BASE_PATH + "slider.png"));
+            //设置原图可见
+            driver.executeScript("document.getElementsByClassName(\"geetest_canvas_fullbg\")[0].setAttribute('style', 'display: block')\n");
+            //图二
+            image = getImageEle(driver.findElement(By.cssSelector("canvas[class='geetest_canvas_fullbg geetest_fade geetest_absolute']")));
+            ImageIO.write(image, "png",  new File(BASE_PATH + "original.png"));
+            //隐藏原图
+            driver.executeScript("document.getElementsByClassName(\"geetest_canvas_fullbg\")[0].setAttribute('style', 'display: none')\n");
+            WebElement element = null;
+            element = driver.findElement(By.className("geetest_slider_button"));
+            actions.clickAndHold(element).perform();
+            int moveDistance = calcMoveDistance();
+            int d = 0;
 
-                List<MoveEntity> list = getMoveEntity(moveDistance);
-                for(MoveEntity moveEntity : list){
-                    actions.moveByOffset(moveEntity.getX(), moveEntity.getY()).perform();
-                    System.out.println("向右总共移动了:" + (d = d + moveEntity.getX()));
-                    Thread.sleep(moveEntity.getSleepTime());
-                }
-                actions.release(element).perform();
-                Thread.sleep(1 * 1000);
+            List<MoveEntity> list = getMoveEntity(moveDistance);
+            for(MoveEntity moveEntity : list){
+                actions.moveByOffset(moveEntity.getX(), moveEntity.getY()).perform();
+                System.out.println("向右总共移动了:" + (d = d + moveEntity.getX()));
+                Thread.sleep(moveEntity.getSleepTime());
             }
-
-        } catch (Exception e) {
+            actions.release(element).perform();
+            Thread.sleep(2 * 1000);
+            driver.findElement(By.id("Button2")).click();
+            Thread.sleep(5 * 1000);
+            driver.findElement(By.xpath("//a[@href='http://hefei.ziye114.com/']")).click();
+            Thread.sleep(5 * 1000);
+            driver.findElement(By.xpath("//a[@href='http://www.ziye114.com/member/']")).click();
+            Thread.sleep(5 * 1000);
+            driver.findElement(By.xpath("//a[@href='http://www.ziye114.com/member/mypost_new.aspx']")).click();
+//            Set<Cookie> coo =driver.manage().getCookies();
+//            System.out.println(coo);
+        }catch (Exception e){
             e.printStackTrace();
-        } finally {
-            driver.quit();
+        }finally {
+//            driver.quit();
         }
+
     }
 
     /**
@@ -90,7 +100,7 @@ public class GeetestCrawlerV2 {
             if (imageFullScreenSize == null){
                 imageFullScreenSize = new Point(fullImg.getWidth(), fullImg.getHeight());
             }
-            WebElement element = driver.findElement(By.cssSelector("div[class='geetest_panel geetest_wind']"));
+            WebElement element = driver.findElement(By.cssSelector("div[class='geetest_fullpage_ghost']"));
 
             System.out.println("html: width:" + element.getSize().width + ", height:" + element.getSize().height);
             if(htmlFullScreenSize == null){
@@ -116,28 +126,28 @@ public class GeetestCrawlerV2 {
             moveEntity.setY(RandomUtils.nextInt(0, 1)==1?RandomUtils.nextInt(0, 2):0-RandomUtils.nextInt(0, 2));
             int s = 0;
             if(i/Double.valueOf(distance)>0.05){
-            	if(i/Double.valueOf(distance)<0.85){
-            		s = RandomUtils.nextInt(2, 5);
-            	}else {
-            		s = RandomUtils.nextInt(10, 15);
-				}
+                if(i/Double.valueOf(distance)<0.85){
+                    s = RandomUtils.nextInt(2, 5);
+                }else {
+                    s = RandomUtils.nextInt(10, 15);
+                }
             }else{
-        		s = RandomUtils.nextInt(20, 30);
+                s = RandomUtils.nextInt(20, 30);
             }
             moveEntity.setSleepTime(s);
             list.add(moveEntity);
-        	i = i + r;
-		} while (i <= distance+5);
-		boolean cc= i>distance;
-		for (int j = 0; j < Math.abs(distance-i); ) {
-			int r = RandomUtils.nextInt(1, 3);
+            i = i + r;
+        } while (i <= distance+5);
+        boolean cc= i>distance;
+        for (int j = 0; j < Math.abs(distance-i); ) {
+            int r = RandomUtils.nextInt(1, 3);
             MoveEntity moveEntity = new MoveEntity();
             moveEntity.setX(cc?-r:r);
             moveEntity.setY(0);
             moveEntity.setSleepTime(RandomUtils.nextInt(100, 200));
             list.add(moveEntity);
             j = j+r;
-		}
+        }
         return list;
     }
 
