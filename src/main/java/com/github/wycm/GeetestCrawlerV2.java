@@ -1,6 +1,7 @@
 package com.github.wycm;
 
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
@@ -11,7 +12,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -72,10 +75,35 @@ public class GeetestCrawlerV2 {
             driver.findElement(By.id("Button2")).click();
             Thread.sleep(5 * 1000);
             driver.findElement(By.xpath("//a[@href='http://hefei.ziye114.com/']")).click();
+            String handle = driver.getWindowHandle();
             Thread.sleep(5 * 1000);
             driver.findElement(By.xpath("//a[@href='http://www.ziye114.com/member/']")).click();
             Thread.sleep(5 * 1000);
-            driver.findElement(By.xpath("//a[@href='http://www.ziye114.com/member/mypost_new.aspx']")).click();
+            for (String handles:driver.getWindowHandles()) {
+                if (!handles.equals(handle)){
+                    driver.switchTo().window(handles);
+                }
+            }
+            //进入发布中数据
+            driver.findElement(By.xpath("//a[@href='http://www.ziye114.com/member/mypost.aspx']")).click();
+            Thread.sleep(5 * 1000);
+            for(int i= 0; i <2; i++){
+                //点击最后尾页
+                driver.findElement(By.xpath("//div[@id='AspNetPager1']/a[last()]")).click();
+                Thread.sleep(5 * 1000);
+                //点击最后一条数据时间
+                String text = driver.findElement(By.xpath("//div[@class='list']/div[last()]/ul[1]/li[@class='ltips']/")).getText();
+                if(StringUtils.isNotEmpty(text)){
+                    String[] arr = text.split("\\|");
+                    String refreshTime = arr[0].trim().substring(5);
+                    if(!isToday(refreshTime)){
+                        driver.findElement(By.xpath("//div[@class='list']/div[last()]/ul[0]/li[@class='do']/a[1]")).click();
+                        Thread.sleep(5 * 1000);
+                        driver.findElement(By.id("_ButtonCancel_0")).click();
+                        Thread.sleep(5 * 1000);
+                    }
+                }
+            }
 //            Set<Cookie> coo =driver.manage().getCookies();
 //            System.out.println(coo);
         }catch (Exception e){
@@ -84,6 +112,14 @@ public class GeetestCrawlerV2 {
 //            driver.quit();
         }
 
+    }
+
+    public static boolean isToday(String date){
+        SimpleDateFormat fmt=new SimpleDateFormat("yyyy-MM-dd");
+        if(date.substring(0, date.indexOf(" ")).equals(fmt.format(new Date()))){//格式化为相同格式
+            return true;
+        }
+        return false;
     }
 
     /**
