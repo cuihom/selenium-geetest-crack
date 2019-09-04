@@ -33,7 +33,7 @@ public class GeetestCrawlerV2 {
     //html 大小
     private static Point htmlFullScreenSize = null;
     static {
-        System.setProperty("webdriver.chrome.driver", "D:\\Downloads\\chromedriver_win32\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", "/Users/cuihom/Downloads/chromedriver");
         driver = new ChromeDriver();
     }
     public static void main(String[] args) {
@@ -92,24 +92,22 @@ public class GeetestCrawlerV2 {
                 driver.findElement(By.xpath("//div[@id='AspNetPager1']/a[last()]")).click();
                 Thread.sleep(5 * 1000);
                 //点击最后一条数据时间
-                String text = driver.findElement(By.xpath("//div[@class='list']/div[last()]/ul[1]/li[@class='ltips']/")).getText();
+                String text = driver.findElement(By.xpath("//div[@class='list']/div[last()]/ul[last()]/li")).getText();
                 if(StringUtils.isNotEmpty(text)){
                     String[] arr = text.split("\\|");
                     String refreshTime = arr[0].trim().substring(5);
                     if(!isToday(refreshTime)){
-                        driver.findElement(By.xpath("//div[@class='list']/div[last()]/ul[0]/li[@class='do']/a[1]")).click();
+                        driver.findElement(By.xpath("//div[@class='list']/div[last()]/ul[1]/li[@class='do']/a[2]")).click();
                         Thread.sleep(5 * 1000);
                         driver.findElement(By.id("_ButtonCancel_0")).click();
-                        Thread.sleep(5 * 1000);
+                        Thread.sleep(10 * 1000);
                     }
                 }
             }
-//            Set<Cookie> coo =driver.manage().getCookies();
-//            System.out.println(coo);
         }catch (Exception e){
             e.printStackTrace();
         }finally {
-//            driver.quit();
+            driver.quit();
         }
 
     }
